@@ -1,0 +1,60 @@
+# Machine-readable adversarial threat taxonomy (see docs/THREAT_TAXONOMY.md for the full artefact).
+# Vectors targeting LLM-based code generation, grounded in Liu et al. (2024a) and Greshake et al. (2023).
+version: "1.0"
+families:
+  direct_injection:
+    description: Malicious instructions embedded directly in the user prompt to override the task.
+    reference: Liu et al. (2024a)
+    vectors:
+      - id: D1
+        technique: instruction override
+        target_cwe: CWE-89
+        detected_by: layer1
+      - id: D2
+        technique: safeguard disabling
+        target_cwe: CWE-20
+        detected_by: layer1
+      - id: D3
+        technique: unsafe-construction directive
+        target_cwe: CWE-78
+        detected_by: layer1
+      - id: D4
+        technique: hard-coded secret directive
+        target_cwe: CWE-798
+        detected_by: layer1
+      - id: D5
+        technique: role reassignment
+        target_cwe: null
+        detected_by: layer1
+  indirect_injection:
+    description: Payload hidden in external/retrieved content the model is told to follow.
+    reference: Greshake et al. (2023)
+    vectors:
+      - id: I1
+        technique: retrieved-content poisoning
+        target_cwe: CWE-20
+        detected_by: [layer1, layer2]
+      - id: I2
+        technique: helper/utility reuse
+        target_cwe: CWE-89
+        detected_by: [layer1, layer2]
+      - id: I3
+        technique: embedded side-note instruction
+        target_cwe: CWE-79
+        detected_by: layer1
+  obfuscated:
+    description: Instruction encoded or structurally disguised to evade literal matching.
+    reference: Liu et al. (2024a)
+    vectors:
+      - id: O1
+        technique: encoding (base64/hex/rot13)
+        target_cwe: null
+        detected_by: layer1
+      - id: O2
+        technique: separator/delimiter manipulation
+        target_cwe: null
+        detected_by: layer1
+      - id: O3
+        technique: chat-template/special-token hijack
+        target_cwe: null
+        detected_by: layer1

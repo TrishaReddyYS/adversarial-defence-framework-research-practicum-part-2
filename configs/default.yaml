@@ -1,0 +1,51 @@
+# Default configuration for the Adversarial Defence Framework.
+
+models:
+  openai: gpt-4o
+  codellama: codellama/CodeLlama-7b-Instruct-hf
+  temperature: 0.2
+  max_tokens: 1024
+
+# Focused scope: Python only, a CWE subset most relevant to injection-style attacks.
+language: python
+cwe_subset:
+  - CWE-20    # Improper Input Validation
+  - CWE-79    # Cross-site Scripting
+  - CWE-89    # SQL Injection
+  - CWE-94    # Code Injection
+  - CWE-798   # Hard-coded Credentials
+
+layer1_sanitiser:
+  use_classifier: true       # transformer injection classifier (required)
+  block_threshold: 0.80      # >= this injection score -> block
+  flag_threshold: 0.50       # >= this -> flag/sanitise
+  strip_on_flag: true
+
+layer2_ast_cwe:
+  # Tree-sitter AST + Semgrep both run (required components, no silent skip).
+  semgrep_timeout_s: 60
+  # Bundled injection rules plus a curated registry pack for wider MITRE CWE Top 25 coverage.
+  semgrep_extra_configs:
+    - p/security-audit
+
+layer3_sandbox:
+  # Docker sandboxing is required (no fallback); the daemon must be running.
+  docker_image: python:3.11-slim
+  cpu_limit: 1.0
+  memory_limit: 256m
+  network_disabled: true
+  exec_timeout_s: 10
+
+# Heuristic weighted-sum trust score across the three layers.
+trust_score:
+  weights:
+    layer1: 0.35
+    layer2: 0.45
+    layer3: 0.20
+  approve_above: 0.80        # trust >= 0.80 -> auto-approve
+  block_below: 0.40          # trust <  0.40 -> block; in between -> flag
+
+evaluation:
+  asr_target: 0.05
+  latency_target_s: 1.0
+  pass_k: [1]

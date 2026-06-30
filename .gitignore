@@ -1,0 +1,21 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+
+# Results / artefacts
+results/*.xlsx
+results/*.docx
+
+# Model / data caches
+*.bin
+*.safetensors

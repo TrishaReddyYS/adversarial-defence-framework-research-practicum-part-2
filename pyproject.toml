@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adf"
+version = "0.1.0"
+description = "Application-layer multi-layer adversarial defence framework for secure LLM-assisted code generation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pyyaml>=6.0",
+    "pandas>=2.0",
+    "openpyxl>=3.1",
+    "python-docx>=1.1",
+    "tree-sitter>=0.22",
+    "tree-sitter-python>=0.21",
+]
+
+[project.optional-dependencies]
+llm = [
+    "openai>=1.30",
+    "transformers>=4.40",
+    "torch>=2.2",
+    "accelerate>=0.30",
+    "huggingface_hub>=0.23",
+]
+sandbox = [
+    "docker>=7.0",
+]
+eval = [
+    "semgrep>=1.0",
+    "radon>=6.0",
+    "bandit>=1.7",
+    "scipy>=1.11",
+]
+dev = [
+    "pytest>=8.0",
+    "hypothesis>=6.100",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+adf = "adf.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["adf*", "eval*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]

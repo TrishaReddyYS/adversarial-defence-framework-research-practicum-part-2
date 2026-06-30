@@ -1,0 +1,18 @@
+# Adversarial Defence Framework - core dependencies (enough to run the demo end to end).
+# The framework degrades gracefully without the optional extras below, so these are all you need
+# to run: sanitise (Layer 1), scan (Layer 2), baseline, defend, and the full pipeline.
+pyyaml>=6.0
+pandas>=2.0
+openpyxl>=3.1
+python-docx>=1.1
+tree-sitter>=0.22
+tree-sitter-python>=0.21
+bandit>=1.7
+
+# ----------------------------------------------------------------------------------------------
+# OPTIONAL EXTRAS (not required for the demo; setup.bat tries Semgrep and Docker automatically):
+#   semgrep>=1.0        broader Layer 2 CWE coverage   (no native Windows build; AST runs without it)
+#   docker>=7.0         enables the Layer 3 sandbox     (also needs Docker Desktop running)
+#   transformers, torch enable the Layer 1 ML classifier (heavy; rule-based Layer 1 works without it)
+#   scipy>=1.11         exact significance tests        (a built-in approximation is used otherwise)
+# ----------------------------------------------------------------------------------------------

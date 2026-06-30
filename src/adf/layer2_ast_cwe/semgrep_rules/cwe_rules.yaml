@@ -1,0 +1,253 @@
+rules:
+  # CWE-78: OS Command Injection
+  - id: adf-os-command-injection
+    languages: [python]
+    severity: ERROR
+    message: Potential OS command injection (CWE-78); untrusted input reaches a shell call.
+    metadata:
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+    patterns:
+      - pattern-either:
+          - pattern: os.system(...)
+          - pattern: os.popen(...)
+          - pattern: subprocess.$F(..., shell=True, ...)
+          - pattern: subprocess.$F(..., shell=$X, ...)
+
+  # CWE-89: SQL Injection
+  - id: adf-sql-injection
+    languages: [python]
+    severity: ERROR
+    message: Potential SQL injection (CWE-89); query built from non-constant input.
+    metadata:
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute($Q + ...)
+          - pattern: $CUR.execute($Q % ...)
+          - pattern: $CUR.execute($Q.format(...))
+          - pattern: $CUR.execute(f"...{...}...")
+          - pattern: $CUR.executemany($Q + ...)
+
+  # CWE-94 / CWE-95: Code Injection (eval/exec of dynamic input)
+  - id: adf-code-injection
+    languages: [python]
+    severity: ERROR
+    message: Dangerous dynamic code execution (CWE-94); eval/exec on untrusted input.
+    metadata:
+      cwe: ["CWE-94: Improper Control of Generation of Code ('Code Injection')"]
+    patterns:
+      - pattern-either:
+          - pattern: eval(...)
+          - pattern: exec(...)
+
+  # CWE-798 / CWE-259: Hard-coded credentials
+  - id: adf-hardcoded-credentials
+    languages: [python]
+    severity: WARNING
+    message: Hard-coded credential (CWE-798); secret embedded in source.
+    metadata:
+      cwe: ["CWE-798: Use of Hard-coded Credentials"]
+    patterns:
+      - pattern-either:
+          - pattern: $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(password|passwd|pwd|secret|api_?key|token|access_?key)$
+
+  # CWE-79: Cross-site Scripting (request data flows to an HTML response sink)
+  - id: adf-xss-flask
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Potential XSS (CWE-79); unsanitised request input reaches an HTML response.
+    metadata:
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+    pattern-sources:
+      - pattern: request.$X
+      - pattern: flask.request.$X
+    pattern-sinks:
+      - pattern: render_template_string(...)
+      - pattern: make_response(...)
+      - pattern: flask.make_response(...)
+
+  # CWE-22: Path Traversal (request data flows to a filesystem sink)
+  - id: adf-path-traversal
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Potential path traversal (CWE-22); request input reaches a file path unvalidated.
+    metadata:
+      cwe: ["CWE-22: Improper Limitation of a Pathname to a Restricted Directory"]
+    pattern-sources:
+      - pattern: request.$X
+      - pattern: flask.request.$X
+    pattern-sinks:
+      - pattern: open(...)
+      - pattern: send_file(...)
+      - pattern: os.path.join(...)
+
+  # CWE-327 / CWE-328: Weak cryptographic hash
+  - id: adf-weak-hash
+    languages: [python]
+    severity: WARNING
+    message: Weak cryptographic algorithm (CWE-327); MD5/SHA1/DES are broken.
+    metadata:
+      cwe: ["CWE-327: Use of a Broken or Risky Cryptographic Algorithm"]
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5(...)
+          - pattern: hashlib.sha1(...)
+          - pattern: Crypto.Cipher.DES.new(...)
+
+  # CWE-502: Unsafe deserialization
+  - id: adf-unsafe-deserialization
+    languages: [python]
+    severity: ERROR
+    message: Unsafe deserialization (CWE-502); loading untrusted serialized data.
+    metadata:
+      cwe: ["CWE-502: Deserialization of Untrusted Data"]
+    patterns:
+      - pattern-either:
+          - pattern: pickle.loads(...)
+          - pattern: pickle.load(...)
+          - pattern: yaml.load($X)
+          - pattern: yaml.load($X, Loader=yaml.Loader)
+
+  # CWE-377 / CWE-78: insecure temp / shell via subprocess without sanitisation
+  - id: adf-subprocess-shell-string
+    languages: [python]
+    severity: ERROR
+    message: Subprocess invoked via shell with a constructed string (CWE-78).
+    metadata:
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+    patterns:
+      - pattern: subprocess.$F("..." + ..., ..., shell=True, ...)
+
+  # --- JavaScript rules (external validity: the framework extends beyond Python) ---
+  - id: adf-js-code-injection
+    languages: [javascript]
+    severity: ERROR
+    message: Dangerous dynamic code execution in JS (CWE-94); eval/Function on untrusted input.
+    metadata:
+      cwe: ["CWE-94: Improper Control of Generation of Code ('Code Injection')"]
+    patterns:
+      - pattern-either:
+          - pattern: eval(...)
+          - pattern: new Function(...)
+
+  - id: adf-js-xss
+    languages: [javascript]
+    severity: ERROR
+    message: Potential XSS in JS (CWE-79); unsanitised value assigned to innerHTML / document.write.
+    metadata:
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+    patterns:
+      - pattern-either:
+          - pattern: $X.innerHTML = ...
+          - pattern: document.write(...)
+
+  - id: adf-js-command-injection
+    languages: [javascript]
+    severity: ERROR
+    message: OS command injection in JS (CWE-78); child_process exec with constructed input.
+    metadata:
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+    patterns:
+      - pattern-either:
+          - pattern: child_process.exec(...)
+          - pattern: require('child_process').exec(...)
+          - pattern: exec($CMD + ...)
+
+  - id: adf-js-hardcoded-credentials
+    languages: [javascript]
+    severity: WARNING
+    message: Hard-coded credential in JS (CWE-798).
+    metadata:
+      cwe: ["CWE-798: Use of Hard-coded Credentials"]
+    patterns:
+      - pattern-either:
+          - pattern: const $VAR = "..."
+          - pattern: let $VAR = "..."
+          - pattern: var $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(password|passwd|pwd|secret|api_?key|token|accesskey)$
+
+  # --- Extended Python rules (broaden coverage on real vulnerable patterns) ---
+  - id: adf-path-traversal-fileops
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Path traversal (CWE-22); request/user input flows to a filesystem operation.
+    metadata:
+      cwe: ["CWE-22: Improper Limitation of a Pathname to a Restricted Directory"]
+    pattern-sources:
+      - pattern: request.$X
+      - pattern: flask.request.$X
+      - pattern: input(...)
+    pattern-sinks:
+      - pattern: os.remove(...)
+      - pattern: os.unlink(...)
+      - pattern: os.rename(...)
+      - pattern: os.rmdir(...)
+      - pattern: shutil.rmtree(...)
+      - pattern: os.open(...)
+
+  - id: adf-command-injection-subprocess-taint
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: OS command injection (CWE-78); untrusted input flows to subprocess.
+    metadata:
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+    pattern-sources:
+      - pattern: input(...)
+      - pattern: request.$X
+      - pattern: flask.request.$X
+    pattern-sinks:
+      - pattern: subprocess.call(...)
+      - pattern: subprocess.run(...)
+      - pattern: subprocess.Popen(...)
+      - pattern: subprocess.check_output(...)
+      - pattern: subprocess.check_call(...)
+
+  - id: adf-weak-ssl-tls
+    languages: [python]
+    severity: WARNING
+    message: Weak/insecure TLS configuration (CWE-327).
+    metadata:
+      cwe: ["CWE-327: Use of a Broken or Risky Cryptographic Algorithm"]
+    patterns:
+      - pattern-either:
+          - pattern: ssl.wrap_socket(...)
+          - pattern: ssl._create_unverified_context(...)
+          - pattern: ssl.PROTOCOL_SSLv2
+          - pattern: ssl.PROTOCOL_SSLv3
+          - pattern: ssl.PROTOCOL_TLSv1
+          - pattern: ssl.PROTOCOL_TLSv1_1
+
+  - id: adf-unsafe-deserialization-extended
+    languages: [python]
+    severity: ERROR
+    message: Unsafe deserialization (CWE-502); loading untrusted serialized data.
+    metadata:
+      cwe: ["CWE-502: Deserialization of Untrusted Data"]
+    patterns:
+      - pattern-either:
+          - pattern: marshal.loads(...)
+          - pattern: marshal.load(...)
+          - pattern: yaml.load($X, Loader=yaml.FullLoader)
+          - pattern: yaml.full_load(...)
+
+  - id: adf-weak-hash-extended
+    languages: [python]
+    severity: WARNING
+    message: Weak cryptographic hash (CWE-327/328); MD4/MD5/SHA1 family.
+    metadata:
+      cwe: ["CWE-327: Use of a Broken or Risky Cryptographic Algorithm"]
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.new("md5", ...)
+          - pattern: hashlib.new("sha1", ...)
+          - pattern: hashlib.new('md5', ...)
+          - pattern: hashlib.new('sha1', ...)
